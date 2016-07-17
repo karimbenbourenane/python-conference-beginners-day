@@ -47,7 +47,14 @@ class CardDeck:
             for rank in self.ranks
         ]
 
+    def __len__(self):
+        return len(self._cards)
 
+    def __getitem__(self, key):
+        return self._cards[key]
+
+    def __setitem__(self, key, value):
+        self._cards[key] = value
 
 """
 Bonus exercise: Polynomial class
@@ -65,30 +72,65 @@ in this example, power-2=2, power-1=-1, power-0=7
 Credit to Moshe Goldstein
 """
 
+from itertools import zip_longest
+
 class Polynomial:
-    def __init__(self, coefficients):
-        pass  # TODO
+    def __init__(self, coefficients=()):
+        self._coefficients = list(coefficients)
 
     def __str__(self):
-        pass  # TODO
+        if not self._coefficients:
+            return '0'
+        if len(self._coefficients) == 1:
+            return str(self._coefficients[0])
+        l = [str(self._coefficients[0])] + ['{0}x^{1}'.format(p, i+1) for i, p in enumerate(self._coefficients[1:])]
+        return ' + '.join(l)
 
     def __add__(self, poly):
-        '''returns the result of adding poly from self'''
-        pass  # TODO
+        coefficient_sums = [
+            x+y
+            for x,y in zip_longest(self._coefficients, poly.coefficients, fillvalue=0)
+        ]
+        return Polynomial(coefficients=coefficient_sums)
 
     def __sub__(self, poly):
-        '''returns the result of subtracting poly from self'''
-        pass  # TODO
+        coefficient_differences = [
+            x-y
+            for x,y in zip_longest(self._coefficients, poly.coefficients, fillvalue=0)
+        ]
+        return Polynomial(coefficients=coefficient_differences)
+
+    def __len__(self):
+        return len(self._coefficients)
+
+    def __iter__(self):
+        return iter(self._coefficients)
+
+    def __repr__(self):
+        return str(self)
 
     def __mul__(self, poly):
-        '''multiply two polynomials'''
-        pass  # TODO
+        self_degree = len(self) - 1 if len(self) != 0 else 0
+        poly_degree = len(poly) - 1 if len(poly) != 0 else 0
+        multiply_coefficients = [0.0] * (self_degree + poly_degree + 1)
+        for i, p in enumerate(self):
+            for j, q in enumerate(poly):
+                multiply_coefficients[i+j] += p * q
+        return Polynomial(coefficients=multiply_coefficients)
+
+    @property
+    def coefficients(self):
+        return self._coefficients
 
     def value(self, x):
-        '''returns the value of the polynomial at point x'''
-        pass  # TODO
+        return self._coefficients[x]
 
     def derivative(self):
-        '''returns the derivate of the polynomial'''
-        pass  # TODO
-
+        derivative_coefficients = list()
+        if not self._coefficients:
+            derivative_coefficients += [0.0]
+        derivative_coefficients += [
+            p*i
+            for i, p in enumerate(self._coefficients) if i > 0
+        ]
+        return Polynomial(coefficients=derivative_coefficients)
